@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -22,14 +24,21 @@ type CurrentUnits struct {
 	Temp     string `json:"temperature_2m"`
 }
 
+type Hourly struct {
+	Times []string `json:"time"`
+}
+
 type Item struct {
 	CurrentWeather CurrentWeather `json:"current"`
 	CurrentUnits   CurrentUnits   `json:"current_units"`
+	Hourly         Hourly         `json:"hourly"`
 }
 
-var myData CurrentWeather
+var cache sync.Map
+var lastFetch time.Time
+var cacheExpiration = 5 * time.Minute
 
-func makeDataReq() {
+func makeDataReq() (error, Item) {
 
 	//make get request for data with parameters
 
@@ -49,7 +58,7 @@ func makeDataReq() {
 
 	if err != nil {
 		fmt.Print(err)
-		return
+		return err, Item{}
 	}
 
 	//send request
@@ -59,7 +68,7 @@ func makeDataReq() {
 
 	if err != nil {
 		fmt.Print(err)
-		return
+		return err, Item{}
 	}
 
 	defer resp.Body.Close()
@@ -68,7 +77,7 @@ func makeDataReq() {
 
 	if err != nil {
 		fmt.Print(err)
-		return
+		return err, Item{}
 	}
 
 	var data Item
@@ -76,21 +85,102 @@ func makeDataReq() {
 	error := json.Unmarshal(body, &data)
 
 	if error != nil {
-		fmt.Print(error)
+		return error, Item{}
 	}
 
-	myData = data.CurrentWeather
+	return nil, data
 
 }
 
 func endpoints() {
 	router := gin.Default()
 
-	router.GET("/currentweather", getWeather)
+	router.GET("/all", getWeather)
 
-	router.Run("localhost:8000")
+	router.GET("/hourly", getHourly)
+
+	router.GET("/current", currentWeather)
+
+	go func() {
+		for {
+			time.Sleep(cacheExpiration)
+			// Trigger background refresh of cache
+			err, _ := makeDataReq()
+			if err != nil {
+				fmt.Println("Error refreshing cache:", err)
+			}
+		}
+	}()
+
+	router.Run("localhost:8001")
+
 }
 
 func getWeather(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, myData)
+
+	now := time.Now()
+
+	// var data Item
+
+	if data, ok := cache.Load("data"); ok && now.Sub(lastFetch) < cacheExpiration {
+		c.IndentedJSON(http.StatusOK, data)
+		fmt.Println("Data fetched from cache")
+		return
+	}
+
+	err, data := makeDataReq()
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	cache.Store("data", data)
+	lastFetch = now
+	c.JSON(http.StatusOK, data)
+	fmt.Println("Data fetched from remote API and stored in cache")
+}
+
+func getHourly(c *gin.Context) {
+	mycache := &cache
+
+	data, ok := mycache.Load("data")
+	if !ok {
+		return
+	}
+
+	var x = data
+	value, ok := x.(Item)
+
+	if !ok {
+		return
+	}
+
+	hourlyData := value.Hourly.Times
+
+	c.IndentedJSON(http.StatusOK, hourlyData)
+
+}
+
+func currentWeather(c *gin.Context) {
+	mycache := &cache
+
+	data, ok := mycache.Load("data")
+	if !ok {
+		return
+	}
+
+	var x = data
+	value, ok := x.(Item)
+
+	if !ok {
+		return
+	}
+
+	currentWthData := value.CurrentWeather
+	units := value.CurrentUnits
+
+	c.IndentedJSON(http.StatusOK, currentWthData)
+	c.IndentedJSON(http.StatusOK, units)
+
 }
