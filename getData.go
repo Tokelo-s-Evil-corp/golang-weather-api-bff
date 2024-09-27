@@ -13,34 +13,52 @@ import (
 )
 
 type CurrentWeather struct {
-	Time      string  `json:"time"`
-	Interval  int     `json:"interval"`
-	Temp2M    float64 `json:"temperature_2m"`
-	WindSpeed float64 `json:"wind_speed_10m"`
-	Humidity  int64   `json:"relative_humidity_2m"`
+	Time                      string  `json:"time"`
+	Interval                  int     `json:"interval"`
+	Temp2M                    float64 `json:"temperature_2m"`
+	WindSpeed                 float64 `json:"wind_speed_10m"`
+	Humidity                  int64   `json:"relative_humidity_2m"`
+	Precipitation             float64 `json:"precipitation"`
+	Precipitation_Probability int     `json:"precipitation_probability"`
+	WeatherCode               int     `json:"weather_code"`
+	WindDirection             int     `json:"wind_direction_10m"`
+	ApparentTemperature       float64 `json:"apparent_temperature"`
+	CloudCover                int     `json:"cloud_cover"`
 }
 
 type CurrentUnits struct {
-	Time      string `json:"time"`
-	Interval  string `json:"interval"`
-	Temp      string `json:"temperature_2m"`
-	WindSpeed string `json:"wind_speed_10m"`
-	Humidity  string `json:"relative_humidity_2m"`
+	Time                      string `json:"time"`
+	Interval                  string `json:"interval"`
+	Temp                      string `json:"temperature_2m"`
+	WindSpeed                 string `json:"wind_speed_10m"`
+	Humidity                  string `json:"relative_humidity_2m"`
+	Precipitation             string `json:"precipitation"`
+	Precipitation_Probability string `json:"precipitation_probability"`
+	WeatherCode               string `json:"weather_code"`
+	WindDirection             string `json:"wind_direction_10m"`
+	ApparentTemperature       string `json:"apparent_temperature"`
+	CloudCover                string `json:"cloud_cover"`
 }
 
 type HourlyUnits struct {
-	Time      string `json:"time"`
-	Interval  string `json:"interval"`
-	Temp      string `json:"temperature_2m"`
-	WindSpeed string `json:"wind_speed_10m"`
-	Humidity  string `json:"relative_humidity_2m"`
+	Time                      string `json:"time"`
+	Interval                  string `json:"interval"`
+	Temp                      string `json:"temperature_2m"`
+	WindSpeed                 string `json:"wind_speed_10m"`
+	Humidity                  string `json:"relative_humidity_2m"`
+	Precipitation             string `json:"precipitation"`
+	Precipitation_Probability string `json:"precipitation_probability"`
+	WeatherCode               string `json:"weather_code"`
 }
 
 type Hourly struct {
-	Time      []string  `json:"time"`
-	Temp2M    []float64 `json:"temperature_2m"`
-	WindSpeed []float64 `json:"wind_speed_10m"`
-	Humidity  []int64   `json:"relative_humidity_2m"`
+	Time                      []string  `json:"time"`
+	Temp2M                    []float64 `json:"temperature_2m"`
+	WindSpeed                 []float64 `json:"wind_speed_10m"`
+	Humidity                  []int64   `json:"relative_humidity_2m"`
+	Precipitation             []float64 `json:"precipitation"`
+	Precipitation_Probability []int     `json:"precipitation_probability"`
+	WeatherCode               []int     `json:"weather_code"`
 }
 
 type Item struct {
@@ -63,8 +81,8 @@ func makeDataReq() (error, Item) {
 	params := url.Values{}
 	params.Add("latitude", "-29.3167")
 	params.Add("longitude", "27.4833")
-	params.Add("current", "temperature_2m,wind_speed_10m,relative_humidity_2m")
-	params.Add("hourly", "temperature_2m,wind_speed_10m,relative_humidity_2m")
+	params.Add("current", "temperature_2m,wind_speed_10m,relative_humidity_2m,precipitation,precipitation_probability,weather_code,wind_direction_10m,apparent_temperature,cloud_cover")
+	params.Add("hourly", "temperature_2m,wind_speed_10m,relative_humidity_2m,precipitation,precipitation_probability,weather_code")
 
 	queryString := params.Encode()
 
