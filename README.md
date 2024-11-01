@@ -1,6 +1,9 @@
 # Weather API in Go with Sync Map
 This document outlines a Go server exposing a REST endpoint for retrieving current weather data. It utilizes a sync map for efficient data storage and retrieval.
 
+## User Interface (Android App)
+[Here](https://github.com/Tokelo-s-Evil-corp/weather-ui-mobile)
+
 ## Dependencies:
 
 - encoding/json
