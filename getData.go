@@ -13,25 +13,59 @@ import (
 )
 
 type CurrentWeather struct {
-	Time     string  `json:"time"`
-	Interval int     `json:"interval"`
-	Temp2M   float64 `json:"temperature_2m"`
+	Time                      string  `json:"time"`
+	Interval                  int     `json:"interval"`
+	Temp2M                    float64 `json:"temperature_2m"`
+	WindSpeed                 float64 `json:"wind_speed_10m"`
+	Humidity                  int64   `json:"relative_humidity_2m"`
+	Precipitation             float64 `json:"precipitation"`
+	Precipitation_Probability int     `json:"precipitation_probability"`
+	WeatherCode               int     `json:"weather_code"`
+	WindDirection             int     `json:"wind_direction_10m"`
+	ApparentTemperature       float64 `json:"apparent_temperature"`
+	CloudCover                int     `json:"cloud_cover"`
 }
 
 type CurrentUnits struct {
-	Time     string `json:"time"`
-	Interval string `json:"interval"`
-	Temp     string `json:"temperature_2m"`
+	Time                      string `json:"time"`
+	Interval                  string `json:"interval"`
+	Temp                      string `json:"temperature_2m"`
+	WindSpeed                 string `json:"wind_speed_10m"`
+	Humidity                  string `json:"relative_humidity_2m"`
+	Precipitation             string `json:"precipitation"`
+	Precipitation_Probability string `json:"precipitation_probability"`
+	WeatherCode               string `json:"weather_code"`
+	WindDirection             string `json:"wind_direction_10m"`
+	ApparentTemperature       string `json:"apparent_temperature"`
+	CloudCover                string `json:"cloud_cover"`
+}
+
+type HourlyUnits struct {
+	Time                      string `json:"time"`
+	Interval                  string `json:"interval"`
+	Temp                      string `json:"temperature_2m"`
+	WindSpeed                 string `json:"wind_speed_10m"`
+	Humidity                  string `json:"relative_humidity_2m"`
+	Precipitation             string `json:"precipitation"`
+	Precipitation_Probability string `json:"precipitation_probability"`
+	WeatherCode               string `json:"weather_code"`
 }
 
 type Hourly struct {
-	Times []string `json:"time"`
+	Time                      []string  `json:"time"`
+	Temp2M                    []float64 `json:"temperature_2m"`
+	WindSpeed                 []float64 `json:"wind_speed_10m"`
+	Humidity                  []int64   `json:"relative_humidity_2m"`
+	Precipitation             []float64 `json:"precipitation"`
+	Precipitation_Probability []int     `json:"precipitation_probability"`
+	WeatherCode               []int     `json:"weather_code"`
 }
 
 type Item struct {
 	CurrentWeather CurrentWeather `json:"current"`
 	CurrentUnits   CurrentUnits   `json:"current_units"`
 	Hourly         Hourly         `json:"hourly"`
+	HourlyUnits    HourlyUnits    `json:"hourly_units"`
 }
 
 var cache sync.Map
@@ -47,8 +81,8 @@ func makeDataReq() (error, Item) {
 	params := url.Values{}
 	params.Add("latitude", "-29.3167")
 	params.Add("longitude", "27.4833")
-	params.Add("current", "temperature_2m")
-	params.Add("hourly", "temperature_2m")
+	params.Add("current", "temperature_2m,wind_speed_10m,relative_humidity_2m,precipitation,precipitation_probability,weather_code,wind_direction_10m,apparent_temperature,cloud_cover")
+	params.Add("hourly", "temperature_2m,wind_speed_10m,relative_humidity_2m,precipitation,precipitation_probability,weather_code")
 
 	queryString := params.Encode()
 
@@ -61,9 +95,9 @@ func makeDataReq() (error, Item) {
 		return err, Item{}
 	}
 
-	//send request
 	client := &http.Client{}
 
+	//send request
 	resp, err := client.Do(req)
 
 	if err != nil {
@@ -120,8 +154,7 @@ func getWeather(c *gin.Context) {
 
 	now := time.Now()
 
-	// var data Item
-
+	//checks for data in the cache and if time rules are respected
 	if data, ok := cache.Load("data"); ok && now.Sub(lastFetch) < cacheExpiration {
 		c.IndentedJSON(http.StatusOK, data)
 		fmt.Println("Data fetched from cache")
@@ -156,7 +189,7 @@ func getHourly(c *gin.Context) {
 		return
 	}
 
-	hourlyData := value.Hourly.Times
+	hourlyData := value.Hourly
 
 	c.IndentedJSON(http.StatusOK, hourlyData)
 
