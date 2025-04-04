@@ -5,7 +5,7 @@ This document outlines a Go server exposing a REST endpoint for retrieving curre
 [Here](https://github.com/Tokelo-s-Evil-corp/weather-ui-mobile)
 
 ## Dependencies:
-
+- GIN
 - encoding/json
 - fmt
 - io
@@ -16,7 +16,14 @@ This document outlines a Go server exposing a REST endpoint for retrieving curre
   
 Data Source:
 
-The server fetches weather data from open-mateo.com (replace with your preferred API).
+The server fetches weather data from [open-meteo.com](https://opeb-meteo.com).
+
+
+## Gin server log
+
+![](https://github.com/Tokelo-s-Evil-corp/weather-ui-mobile/blob/main/Weather-golang-server.png)
+
+
 Technology Stack:
 
 ## Go programming language
