@@ -146,7 +146,7 @@ func endpoints() {
 		}
 	}()
 
-	router.Run("localhost:8001")
+	router.Run("0.0.0.0:9000")
 
 }
 
