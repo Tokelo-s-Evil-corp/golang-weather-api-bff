@@ -4,6 +4,10 @@ on:
   push:
     branches: [ "main" ] # Runs every time you push to main
 
+permissions:
+  id-token: write
+  contents: read    
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -14,11 +18,8 @@ jobs:
     - name: Log in to Azure
       uses: azure/login@v2
       with:
-        client-id: ${{ secrets.AZURE_CLIENT_ID }}
-        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-        client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+        creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
 
     - name: Build and Push to ACR
       run: |
-        az acr build --registry myweatheracr --image golang-weather-bff:${{ github.sha }} .
+        az acr build --registry myweatheracr26 --image golang-weather-bff:${{ github.sha }} .
