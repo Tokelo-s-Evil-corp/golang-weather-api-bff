@@ -1,1 +1,2 @@
 AI recommendations depending on the weather. e.g Carry an umbrella, Winter is approaching.
+

@@ -5,6 +5,7 @@ WORKDIR /app
 COPY go.mod . go.sum ./
 COPY getData.go .
 COPY main.go .
+COPY . .
 
 RUN go get
 RUN go build -o bin .
