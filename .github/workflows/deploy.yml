@@ -37,3 +37,10 @@ jobs:
           # Also tag it as 'latest' for easier deployment later
           docker tag myweatheracr26.azurecr.io/golang-weather-bff:${{ github.sha }} myweatheracr26.azurecr.io/golang-weather-bff:latest
           docker push myweatheracr26.azurecr.io/golang-weather-bff:latest
+
+      - name: Update Azure Container App
+        run: |
+          az containerapp update \
+            --name weather-api \
+            --resource-group weather-bff-rg \
+            --image myweatheracr26.azurecr.io/golang-weather-bff:${{ github.sha }}  

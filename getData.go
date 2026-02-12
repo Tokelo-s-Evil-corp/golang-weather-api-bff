@@ -68,19 +68,24 @@ type Item struct {
 	HourlyUnits    HourlyUnits    `json:"hourly_units"`
 }
 
+type LocationData struct {
+	Latitude  string `json:"latitude"`
+	Longitude string `json:"longitude"`
+}
+
 var cache sync.Map
 var lastFetch time.Time
 var cacheExpiration = 5 * time.Minute
 
-func makeDataReq() (error, Item) {
+func makeDataReq(longitude string, latitude string) (error, Item) {
 
 	//make get request for data with parameters
 
 	baseURL := "https://api.open-meteo.com/v1/forecast"
 
 	params := url.Values{}
-	params.Add("latitude", "-29.3167")
-	params.Add("longitude", "27.4833")
+	params.Add("latitude", latitude)
+	params.Add("longitude", longitude)
 	params.Add("current", "temperature_2m,wind_speed_10m,relative_humidity_2m,precipitation,precipitation_probability,weather_code,wind_direction_10m,apparent_temperature,cloud_cover")
 	params.Add("hourly", "temperature_2m,wind_speed_10m,relative_humidity_2m,precipitation,precipitation_probability,weather_code")
 
@@ -129,7 +134,7 @@ func makeDataReq() (error, Item) {
 func endpoints() {
 	router := gin.Default()
 
-	router.GET("/all", getWeather)
+	router.POST("/all", getWeather)
 
 	router.GET("/hourly", getHourly)
 
@@ -139,7 +144,7 @@ func endpoints() {
 		for {
 			time.Sleep(cacheExpiration)
 			// Trigger background refresh of cache
-			err, _ := makeDataReq()
+			err, _ := makeDataReq("-26.238761", "28.067449")
 			if err != nil {
 				fmt.Println("Error refreshing cache:", err)
 			}
@@ -161,7 +166,14 @@ func getWeather(c *gin.Context) {
 		return
 	}
 
-	err, data := makeDataReq()
+	var LocationData LocationData
+
+	if err := c.ShouldBindJSON(&LocationData); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error unmarshaling JSON": err.Error()})
+		return
+	}
+
+	err, data := makeDataReq(LocationData.Longitude, LocationData.Latitude)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
